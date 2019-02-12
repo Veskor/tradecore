@@ -128,7 +128,7 @@ class User(AbstractBaseUser,PermissionsMixin):
 
     is_staff = models.BooleanField(_('staff status'), default=False)
     is_superuser = models.BooleanField(_('superuser status'), default=False)
-    is_active = models.BooleanField(_('active'), default=False)
+    is_active = models.BooleanField(_('active'), default=True)
     user_type = models.CharField(_('user type'),choices=USER_TYPES, default=SALES, max_length=32)
 
 

@@ -24,17 +24,15 @@ class UserCreationView(viewsets.ViewSet):
     serializer_class = UserRegistrationSerializer
     queryset = serializer_class.Meta.model.objects.all()
 
-    def list(self,request):
-        users = User.objects.all()
-        users = UserSerializer(users,many=True)
-        return Response({"users":users.data})
+    def list(self, request):
+        return Response('Post to register an account')
 
     def create(self,request):
 
         data = self.serializer_class(data=request.data)
 
         if not data.is_valid():
-            res = Response()
+            res = Response(data.errors)
             res.status_code = 400
             return res
 

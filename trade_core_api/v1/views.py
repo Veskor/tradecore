@@ -31,7 +31,7 @@ class PostViewSet(viewsets.ModelViewSet):
         return CreatePostSerializer
 
     def list(self, request):
-        posts = Post.objects.all()
+        posts = Post.objects.all().exclude(owner=self.request.user)
         posts = PostSerializer(posts,many=True)
         return Response(posts.data)
 
@@ -48,7 +48,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
 
-        post = CreatePostSerializer(data=request.POST)
+        post = CreatePostSerializer(data=request.POST, context={'user': request.user})
 
         if post.is_valid():
             post.save()
