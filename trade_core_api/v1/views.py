@@ -73,7 +73,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
         user_id = str(self.request.user.id)
 
-        if user_id not in likes['keys']:
+        if user_id not in likes['keys'] or post.owner == self.request.user:
 
             likes['count'] += 1
 

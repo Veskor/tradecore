@@ -29,17 +29,13 @@ class User(object):
         }
 
         self.likes = 0
-
         self.posts = []
-
         signup_response = self.signup()
-
         jwt_token = self.login()
-
         self.api = Api(jwt_token)
 
         for _ in range(random.randint(0,max_posts)):
-            post = self.api.post().json()
+            post = self.api.post()
             self.posts.append(post['id'])
 
     def signup(self):
@@ -54,23 +50,24 @@ class User(object):
 class Api(object):
     def __init__(self, jwt_token):
         self.headers = {'Authorization': 'JWT '+ jwt_token['token'] }
+        self.posts = None
 
     def get_posts(self):
         url = api_url + 'api/v1/post/'
-        return requests.get(url, headers=self.headers)
+        return requests.get(url, headers=self.headers).json()
 
     def post(self):
         url = api_url + 'api/v1/post/'
         data = {'data': json.dumps({'title': 'StartOver' + string_generator(),'text': string_generator()})}
-        return requests.post(url, data=data, headers=self.headers)
+        return requests.post(url, data=data, headers=self.headers).json()
 
     def like(self, post_id):
         url = api_url + 'api/v1/post/{}/like/'.format(post_id)
-        return requests.put(url, headers=self.headers)
+        return requests.put(url, headers=self.headers).status_code
 
     def unlike(self, post_id):
         url = api_url + 'api/v1/post/{}/unlike/'.format(post_id)
-        return requests.put(url, headers=self.headers)
+        return requests.put(url, headers=self.headers).status_code
 
 def main():
     user_instances = []
@@ -79,9 +76,9 @@ def main():
         user_instances.append(User())
 
     while(True):
-
         winner = None
         max = 0
+
         for user in user_instances:
             if max < len(user.posts) and user.likes < max_likes:
                 max = len(user.posts)
@@ -89,29 +86,30 @@ def main():
 
         if winner:
             for post in winner.api.get_posts():
-                print(post)
-                data = json.loads(post['data'])
+                data = json.loads(post['likes'])
                 if data['count'] == 0:
                     target = post['owner']
 
             target_locked = []
-            for post in winner.get_posts():
+            for post in winner.api.get_posts():
                 if post['owner'] == target:
                     target_locked.append(post)
 
-            like_target = random.randint(0, len(target_locked))
+            like_target = random.randint(0, len(target_locked) - 1)
 
             winner.api.like(post_id=target_locked[like_target]['id'])
+            winner.likes += 1
         else:
             # handy break
             break
+
         # Do I stop master ?
         # Lets assume yes
         answer = True
-
         for user in user_instances:
             for post in user.api.get_posts():
-                if int(json.loads(post['data'])['count']) > 0:
+                data = json.loads(post['likes'])
+                if data['count'] > 0:
                     continue
                 else:
                     answer = False
